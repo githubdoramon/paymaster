@@ -23,136 +23,137 @@ export async function deployToken(deployer: Deployer): Promise<Contract> {
 }
 
 describe('BUIDLBUXX', function () {
-  // it("Should deploy token, and premint it", async function () {
-  //   const provider = new zk.Provider(hre.config.networks.zkSyncTestnet.url)
+  it("Should deploy token, and premint it", async function () {
+    const provider = new zk.Provider(hre.config.networks.zkSyncTestnet.url)
 
-  //   const wallet = new Wallet(RICH_WALLET_PK, provider);
-  //   const wallet3 = new Wallet(RICH_WALLET_PK_3);
+    const wallet = new Wallet(RICH_WALLET_PK, provider);
+    const wallet3 = new Wallet(RICH_WALLET_PK_3);
 
-  //   const deployer = new Deployer(hre, wallet);
+    const deployer = new Deployer(hre, wallet);
 
-  //   const buidlBuxx = await deployToken(deployer);
+    const buidlBuxx = await deployToken(deployer);
 
-  //   expect(await buidlBuxx.name()).to.eq('BUIDL BUXX');
-  //   expect(await buidlBuxx.symbol()).to.eq('BUIDL');
-  //   expect(await buidlBuxx.decimals()).to.eq(2);
+    expect(await buidlBuxx.name()).to.eq('BUIDL BUXX');
+    expect(await buidlBuxx.symbol()).to.eq('BUIDL');
+    expect(await buidlBuxx.decimals()).to.eq(2);
 
-  //   const decimals = await buidlBuxx.decimals()
-  //   expect((await buidlBuxx.totalSupply()).toNumber()).to.eq(100000 * (10 ** decimals));
+    const decimals = await buidlBuxx.decimals()
+    expect((await buidlBuxx.totalSupply()).toNumber()).to.eq(100000 * (10 ** decimals));
     
-  //   const allowList = await buidlBuxx.allowList(wallet3.address)
-  //   expect(allowList).to.eq(true)
-  // });
+    const allowList = await buidlBuxx.allowList(wallet3.address)
+    expect(allowList).to.eq(true)
+  });
 
-  // it("Should be able to mint more - only the owner", async function () {
-  //   const provider = new zk.Provider(hre.config.networks.zkSyncTestnet.url)
+  it("Should be able to mint more - only the owner", async function () {
+    const provider = new zk.Provider(hre.config.networks.zkSyncTestnet.url)
 
-  //   const wallet = new Wallet(RICH_WALLET_PK, provider);
-  //   const wallet2 = new Wallet(RICH_WALLET_PK_2, provider);
-  //   const wallet3 = new Wallet(RICH_WALLET_PK_3, provider);
+    const wallet = new Wallet(RICH_WALLET_PK, provider);
+    const wallet2 = new Wallet(RICH_WALLET_PK_2, provider);
+    const wallet3 = new Wallet(RICH_WALLET_PK_3, provider);
 
-  //   const deployer = new Deployer(hre, wallet);
+    const deployer = new Deployer(hre, wallet);
 
-  //   const buidlBuxx = await deployToken(deployer);
+    const buidlBuxx = await deployToken(deployer);
     
-  //   const decimals = await buidlBuxx.decimals()
+    const decimals = await buidlBuxx.decimals()
 
-  //   expect(await buidlBuxx.totalSupply()).to.eq(BigNumber.from(100000 * (10 ** decimals)));
+    expect(await buidlBuxx.totalSupply()).to.eq(BigNumber.from(100000 * (10 ** decimals)));
     
-  //   const tx = await buidlBuxx.mint(wallet3.address, (20 * (10 ** decimals)))
-  //   await tx.wait()
+    const tx = await buidlBuxx.mint(wallet3.address, (20 * (10 ** decimals)))
+    await tx.wait()
 
-  //   expect(await buidlBuxx.totalSupply()).to.eq(BigNumber.from(100020 * (10 ** decimals)));
+    expect(await buidlBuxx.totalSupply()).to.eq(BigNumber.from(100020 * (10 ** decimals)));
 
-    // await expect(buidlBuxx.connect(wallet2).mint(wallet2.address, 1)).to.be.revertedWith("Ownable: caller is not the owner");
-  // });
+    await expect(buidlBuxx.connect(wallet2).mint(wallet2.address, 1)).to.be.revertedWith("Ownable: caller is not the owner");
+  });
 
-  // it("Should be able to burn - only owner", async function () {
-  //   const provider = new zk.Provider(hre.config.networks.zkSyncTestnet.url)
+  it("Should be able to burn - only owner", async function () {
+    const provider = new zk.Provider(hre.config.networks.zkSyncTestnet.url)
 
-  //   const wallet = new Wallet(RICH_WALLET_PK, provider);
-  //   const wallet2 = new Wallet(RICH_WALLET_PK_2, provider);
-  //   const wallet3 = new Wallet(RICH_WALLET_PK_3, provider);
+    const wallet = new Wallet(RICH_WALLET_PK, provider);
+    const wallet2 = new Wallet(RICH_WALLET_PK_2, provider);
+    const wallet3 = new Wallet(RICH_WALLET_PK_3, provider);
 
-  //   const deployer = new Deployer(hre, wallet);
+    const deployer = new Deployer(hre, wallet);
 
-  //   const buidlBuxx = await deployToken(deployer);
+    const buidlBuxx = await deployToken(deployer);
 
-  //   const decimals = await buidlBuxx.decimals()
+    const decimals = await buidlBuxx.decimals()
 
-  //   const tx1 = await buidlBuxx.transfer(wallet3.address, (20 * (10 ** decimals)))
-  //   await tx1.wait()
+    const tx1 = await buidlBuxx.transfer(wallet3.address, (20 * (10 ** decimals)))
+    await tx1.wait()
 
-  //  await expect((buidlBuxx.connect(wallet2)).burn(wallet2.address, 1)).to.be.revertedWith("Ownable: caller is not the owner");
+   await expect((buidlBuxx.connect(wallet2)).burn(wallet2.address, 1)).to.be.revertedWith("Ownable: caller is not the owner");
 
-  //   expect(await buidlBuxx.balanceOf(wallet2.address)).to.eq(BigNumber.from(0));
+    expect(await buidlBuxx.balanceOf(wallet2.address)).to.eq(BigNumber.from(0));
 
-  //   const tx2 = await buidlBuxx.transfer(wallet2.address, 2)
-  //   await tx2.wait()
+    const tx2 = await buidlBuxx.transfer(wallet2.address, 2)
+    await tx2.wait()
 
-  //   expect(await buidlBuxx.balanceOf(wallet2.address)).to.eq(BigNumber.from(2));
+    expect(await buidlBuxx.balanceOf(wallet2.address)).to.eq(BigNumber.from(2));
 
-  //   const tx3 = await buidlBuxx.burn(wallet2.address, 1)
-  //   await tx3.wait()
+    const tx3 = await buidlBuxx.burn(wallet2.address, 1)
+    await tx3.wait()
 
-  //   expect(await buidlBuxx.balanceOf(wallet2.address)).to.eq(BigNumber.from(1));
-  // });
+    expect(await buidlBuxx.balanceOf(wallet2.address)).to.eq(BigNumber.from(1));
+  });
 
-  // it("Should be able to transfer - only allowListed and owner", async function () {
-  //   const provider = new zk.Provider(hre.config.networks.zkSyncTestnet.url)
+  it("Should be able to transfer - only allowListed and owner", async function () {
+    const provider = new zk.Provider(hre.config.networks.zkSyncTestnet.url)
 
-  //   const wallet = new Wallet(RICH_WALLET_PK, provider);
-  //   const wallet2 = new Wallet(RICH_WALLET_PK_2, provider);
-  //   const wallet3 = new Wallet(RICH_WALLET_PK_3, provider);
+    const wallet = new Wallet(RICH_WALLET_PK, provider);
+    const wallet2 = new Wallet(RICH_WALLET_PK_2, provider);
+    const wallet3 = new Wallet(RICH_WALLET_PK_3, provider);
 
-  //   const deployer = new Deployer(hre, wallet);
+    const deployer = new Deployer(hre, wallet);
 
-  //   const buidlBuxx = await deployToken(deployer);
+    const buidlBuxx = await deployToken(deployer);
 
-  //   const decimals = await buidlBuxx.decimals()
+    const decimals = await buidlBuxx.decimals()
 
-  //   const tx1 = await buidlBuxx.transfer(wallet2.address, 20 * (10 ** await buidlBuxx.decimals()))
-  //   await tx1.wait()
+    const tx1 = await buidlBuxx.transfer(wallet2.address, 20 * (10 ** await buidlBuxx.decimals()))
+    await tx1.wait()
 
-  //   expect((await buidlBuxx.balanceOf(wallet2.address)).toNumber()).to.eq(20 * (10 ** decimals));
+    expect((await buidlBuxx.balanceOf(wallet2.address)).toNumber()).to.eq(20 * (10 ** decimals));
 
-  //   const theForcedTransfer = buidlBuxx.forceTransferWithMessage(wallet2.address, wallet3.address, 5 * (10 ** decimals), "Forced transfer")
+    const theForcedTransfer = buidlBuxx.forceTransferWithMessage(wallet2.address, wallet3.address, 5 * (10 ** decimals), "Forced transfer")
 
-  //   await expect(theForcedTransfer).to.emit(buidlBuxx, "TransferedWithMessage");
-  //   await (await theForcedTransfer).wait()
+    await expect(theForcedTransfer).to.emit(buidlBuxx, "TransferedWithMessage");
+    await (await theForcedTransfer).wait()
 
-  //   expect(await buidlBuxx.balanceOf(wallet2.address)).to.eq(BigNumber.from(15 * (10 ** decimals)));
-  //   expect(await buidlBuxx.balanceOf(wallet3.address)).to.eq(BigNumber.from(5 * (10 ** decimals)));
+    expect(await buidlBuxx.balanceOf(wallet2.address)).to.eq(BigNumber.from(15 * (10 ** decimals)));
+    expect(await buidlBuxx.balanceOf(wallet3.address)).to.eq(BigNumber.from(5 * (10 ** decimals)));
 
-  //   await expect(buidlBuxx.connect(wallet2).forceTransferWithMessage(wallet3.address, wallet.address, 5 * (10 ** decimals), "Forced transfer")).to.be.revertedWith("Not allowlisted or owner")
+    await expect(buidlBuxx.connect(wallet2).forceTransferWithMessage(wallet3.address, wallet.address, 5 * (10 ** decimals), "Forced transfer")).to.be.revertedWith("Not allowlisted or owner")
 
-  //   const tx2 = await buidlBuxx.connect(wallet3).forceTransferWithMessage(wallet2.address, wallet3.address, 5 * (10 ** await decimals), "Forced transfer")
-  //   await tx2.wait()
+    const tx2 = await buidlBuxx.connect(wallet3).forceTransferWithMessage(wallet2.address, wallet3.address, 5 * (10 ** await decimals), "Forced transfer")
+    await tx2.wait()
 
-  //   expect(await buidlBuxx.balanceOf(wallet2.address)).to.eq(BigNumber.from(10 * (10 ** decimals)));
-  //   expect(await buidlBuxx.balanceOf(wallet3.address)).to.eq(BigNumber.from(10 * (10 ** decimals)));
-  // });
+    expect(await buidlBuxx.balanceOf(wallet2.address)).to.eq(BigNumber.from(10 * (10 ** decimals)));
+    expect(await buidlBuxx.balanceOf(wallet3.address)).to.eq(BigNumber.from(10 * (10 ** decimals)));
+  });
 
-  // it("Should add and remove from allowList - only the owner", async function () {
-  //   const provider = new zk.Provider(hre.config.networks.zkSyncTestnet.url)
+  it("Should add and remove from allowList - only the owner", async function () {
+    const provider = new zk.Provider(hre.config.networks.zkSyncTestnet.url)
 
-  //   const wallet = new Wallet(RICH_WALLET_PK, provider);
-  //   const wallet2 = new Wallet(RICH_WALLET_PK_2, provider);
-  //   const wallet3 = new Wallet(RICH_WALLET_PK_3, provider);
+    const wallet = new Wallet(RICH_WALLET_PK, provider);
+    const wallet2 = new Wallet(RICH_WALLET_PK_2, provider);
+    const wallet3 = new Wallet(RICH_WALLET_PK_3, provider);
 
-  //   const deployer = new Deployer(hre, wallet);
+    const deployer = new Deployer(hre, wallet);
 
-  //   const buidlBuxx = await deployToken(deployer);
+    const buidlBuxx = await deployToken(deployer);
     
-  //   const tx = await buidlBuxx.addToAllowList([wallet2.address])
-  //   await tx.wait()
+    const tx = await buidlBuxx.addToAllowList([wallet2.address])
+    await tx.wait()
 
-  //   expect(await buidlBuxx.allowList(wallet2.address)).to.eq(true);
+    expect(await buidlBuxx.allowList(wallet2.address)).to.eq(true);
 
-  //   const tx2 = await buidlBuxx.removeFromAllowList([wallet3.address, wallet2.address])
-  //   await tx2.wait()
+    const tx2 = await buidlBuxx.removeFromAllowList([wallet3.address, wallet2.address])
+    await tx2.wait()
 
-  //   expect(await buidlBuxx.allowList(wallet3.address)).to.eq(false);
-  //   expect(await buidlBuxx.allowList(wallet2.address)).to.eq(false);
-  // });
+    expect(await buidlBuxx.allowList(wallet3.address)).to.eq(false);
+    expect(await buidlBuxx.allowList(wallet2.address)).to.eq(false);
+
+  });
 });

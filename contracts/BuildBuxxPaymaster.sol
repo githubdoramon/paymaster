@@ -47,6 +47,7 @@ contract BuildBuxxPaymaster is IPaymaster {
 
             address userAddress = address(uint160(_transaction.from));
             
+            IERC20(allowedToken);
             uint256 accountBalance = BUIDLBUXX(allowedToken).balanceOf(userAddress);
             require(
                 accountBalance > 0,
