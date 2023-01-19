@@ -105,16 +105,4 @@ contract BuidlBuxxPaymaster is IPaymaster, Ownable {
     function withdraw() external onlyOwner {
         payable(msg.sender).transfer(address(this).balance);
     }
-
-    function bytesToString(bytes20 _bytes20) public pure returns (string memory) {
-        uint8 i = 0;
-        while(i < 20 && _bytes20[i] != 0) {
-            i++;
-        }
-        bytes memory bytesArray = new bytes(i);
-        for (i = 0; i < 20 && _bytes20[i] != 0; i++) {
-            bytesArray[i] = _bytes20[i];
-        }
-        return string(bytesArray);
-    }
 }

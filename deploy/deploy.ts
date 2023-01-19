@@ -47,7 +47,7 @@ export default async function (hre: HardhatRuntimeEnvironment) {
   const promises: Promise<void>[] = []
   wallets.forEach(async (wallet) => {
     const promise = new Promise<void>(async resolve => {
-      await (await buidlBuxx.transfer(wallet.address, amountToTransfer)).wait()
+      await (await buidlBuxx.claim(wallet.address, amountToTransfer)).wait()
       resolve()
     })
     promises.push(promise)
@@ -55,10 +55,13 @@ export default async function (hre: HardhatRuntimeEnvironment) {
 
   await Promise.all(promises)
 
-  // Last 3 wallets will be in the AllowList
-  buidlBuxx.addToAllowList([wallets[wallets.length - 1].address, wallets[wallets.length - 2].address, wallets[wallets.length - 3].address])
+  // Last wallet will be in the AllowList for claiming
+  await buidlBuxx.addToAllowList([wallets[wallets.length - 1].address])
+
+  // Second last 2 wallets will be "vendors" in the desitnationList to receive transfer paid by the paymaster
+  await paymaster.addAllowedDestination([wallets[wallets.length - 2].address, wallets[wallets.length - 3].address])
 
   // First wallet will be the owner of the token contract
-  buidlBuxx.transferOwnership(wallets[0].address)
+  await buidlBuxx.transferOwnership(wallets[0].address)
 
 }
