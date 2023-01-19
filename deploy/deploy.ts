@@ -1,5 +1,4 @@
-import { Wallet, utils } from "zksync-web3";
-import * as ethers from "ethers";
+import { Wallet } from "zksync-web3";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { Deployer } from "@matterlabs/hardhat-zksync-deploy";
 
@@ -13,44 +12,53 @@ const PRIVATE_KEY = process.env.WALLET_PRIVATE_KEY || "";
 if (!PRIVATE_KEY)
   throw "⛔️ Private key not detected! Add it to the .env file!";
 
-// An example of a deploy script that will deploy and call a simple contract.
 export default async function (hre: HardhatRuntimeEnvironment) {
-  // Initialize the wallet.
+
   const wallet = new Wallet(PRIVATE_KEY);
 
-  // Create deployer object and load the artifact of the contract you want to deploy.
   const deployer = new Deployer(hre, wallet);
 
+  const BuidlBuxxArtifact = await deployer.loadArtifact("BuidlBuxx");
+  const buidlBuxx = await deployer.deploy(BuidlBuxxArtifact);
 
-  // const artifact = await deployer.loadArtifact("Greeter");
+  console.log("BuidlBuxx deployed to:", buidlBuxx.address)
 
-  // // Estimate contract deployment fee
-  // const greeting = "Hi there!";
-  // const deploymentFee = await deployer.estimateDeployFee(artifact, [greeting]);
+  const PaymasterArtifact = await deployer.loadArtifact("BuidlBuxxPaymaster");
+  const paymaster = await deployer.deploy(PaymasterArtifact, [buidlBuxx.address]);
 
-  // // ⚠️ OPTIONAL: You can skip this block if your account already has funds in L2
-  // // Deposit funds to L2
-  // const depositHandle = await deployer.zkWallet.deposit({
-  //   to: deployer.zkWallet.address,
-  //   token: utils.ETH_ADDRESS,
-  //   amount: deploymentFee.mul(2),
+  console.log("Paymaster deployed to:", paymaster.address)
+
+  await hre.run("verify:verify", {
+    address: buidlBuxx.address,
+    contract: "contracts/BuidlBuxx.sol:BuidlBuxx",
+  });
+
+  // Can't flatten due to circular dependency - need to update the plugin to use the new endpoint for multiple files
+  // await hre.run("verify:verify", {
+  //   address: paymaster.address,
+  //   contract: "contracts/BuidlBuxxPaymaster.sol:BuidlBuxxPaymaster",
+  //   constructorArguments: [buidlBuxx.address]
   // });
-  // // Wait until the deposit is processed on zkSync
-  // await depositHandle.wait();
 
-  // // Deploy this contract. The returned object will be of a `Contract` type, similarly to ones in `ethers`.
-  // // `greeting` is an argument for contract constructor.
-  // const parsedFee = ethers.utils.formatEther(deploymentFee.toString());
-  // console.log(`The deployment is estimated to cost ${parsedFee} ETH`);
+  // Fund all wallets with BuidlBuxx
+  const wallets = require("../testWallets/wallets.json") as { address: string, privateKey: string }[]
 
-  // const greeterContract = await deployer.deploy(artifact, [greeting]);
+  const amountToTransfer = 100 * (10 ** (await buidlBuxx.decimals()))
+  const promises: Promise<void>[] = []
+  wallets.forEach(async (wallet) => {
+    const promise = new Promise<void>(async resolve => {
+      await (await buidlBuxx.transfer(wallet.address, amountToTransfer)).wait()
+      resolve()
+    })
+    promises.push(promise)
+  });
 
-  // //obtain the Constructor Arguments
-  // console.log(
-  //   "constructor args:" + greeterContract.interface.encodeDeploy([greeting])
-  // );
+  await Promise.all(promises)
 
-  // // Show the contract info.
-  // const contractAddress = greeterContract.address;
-  // console.log(`${artifact.contractName} was deployed to ${contractAddress}`);
+  // Last 3 wallets will be in the AllowList
+  buidlBuxx.addToAllowList([wallets[wallets.length - 1].address, wallets[wallets.length - 2].address, wallets[wallets.length - 3].address])
+
+  // First wallet will be the owner of the token contract
+  buidlBuxx.transferOwnership(wallets[0].address)
+
 }

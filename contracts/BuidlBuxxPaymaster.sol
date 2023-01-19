@@ -4,12 +4,14 @@ pragma solidity ^0.8.0;
 import {IPaymaster, ExecutionResult} from "@matterlabs/zksync-contracts/l2/system-contracts/interfaces/IPaymaster.sol";
 import {IPaymasterFlow} from "@matterlabs/zksync-contracts/l2/system-contracts/interfaces/IPaymasterFlow.sol";
 import {TransactionHelper, Transaction} from "@matterlabs/zksync-contracts/l2/system-contracts/TransactionHelper.sol";
-import {BUIDLBUXX} from "./BuidlBuxx.sol";
+import {BuidlBuxx} from "./BuidlBuxx.sol";
 import "@matterlabs/zksync-contracts/l2/system-contracts/Constants.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract BuildBuxxPaymaster is IPaymaster {
+contract BuidlBuxxPaymaster is IPaymaster, Ownable {
 
     address public allowedToken;
+    mapping (address => bool) public allowedDestinations;
 
     modifier onlyBootloader() {
         require(
@@ -22,6 +24,18 @@ contract BuildBuxxPaymaster is IPaymaster {
 
     constructor(address _erc20) {
         allowedToken = _erc20;
+    }
+
+    function addAllowedDestination(address[] memory _destinations) external onlyOwner {
+        for (uint i = 0; i < _destinations.length; i++) {
+            allowedDestinations[_destinations[i]] = true;
+        }
+    }
+
+    function removeAllowedDestination(address[] memory _destinations) external onlyOwner {
+        for (uint i = 0; i < _destinations.length; i++) {
+            allowedDestinations[_destinations[i]] = false;
+        }
     }
 
     function validateAndPayForPaymasterTransaction(
@@ -39,7 +53,7 @@ contract BuildBuxxPaymaster is IPaymaster {
         );
        if (paymasterInputSelector == IPaymasterFlow.general.selector) {
 
-            bytes4 selector = BUIDLBUXX.transferWithMessage.selector;
+            bytes4 selector = IERC20.transfer.selector;
             bytes4 calldataSelector = bytes4(_transaction.data);
             
             require(selector == calldataSelector, "Function called is not supported by this Paymaster");
@@ -47,13 +61,19 @@ contract BuildBuxxPaymaster is IPaymaster {
 
             address userAddress = address(uint160(_transaction.from));
             
-            IERC20(allowedToken);
-            uint256 accountBalance = BUIDLBUXX(allowedToken).balanceOf(userAddress);
+            uint256 accountBalance = BuidlBuxx(allowedToken).balanceOf(userAddress);
             require(
                 accountBalance > 0,
-                "Account do not hold BUIDL BUCKS"
+                "Account do not hold BUIDL BUXX"
             );
 
+           require(allowedDestinations[address(bytes20(_transaction.data[16:36]))] == true, "Destination is not supported by this Paymaster");
+
+            uint256 amount = uint256(bytes32(_transaction.data[36:68]));
+            require(
+                amount > 0,
+                "Paymaster won't honor a transfer of 0 tokens"
+            );
             // Note, that while the minimal amount of ETH needed is tx.ergsPrice * tx.ergsLimit,
             // neither paymaster nor account are allowed to access this context variable.
             uint256 requiredETH = _transaction.ergsLimit *
@@ -82,12 +102,19 @@ contract BuildBuxxPaymaster is IPaymaster {
 
     receive() external payable {}
 
-    function toHexDigit(uint8 d) pure internal returns (bytes1) {                                                                                      
-    if (0 <= d && d <= 9) {                                                                                                                      
-        return bytes1(uint8(bytes1('0')) + d);                                                                                                       
-    } else if (10 <= uint8(d) && uint8(d) <= 15) {                                                                                               
-        return bytes1(uint8(bytes1('a')) + d - 10);                                                                                                  
-    }                                                                                                                                            
-    revert();                                                                                                                                    
-}   
+    function withdraw() external onlyOwner {
+        payable(msg.sender).transfer(address(this).balance);
+    }
+
+    function bytesToString(bytes20 _bytes20) public pure returns (string memory) {
+        uint8 i = 0;
+        while(i < 20 && _bytes20[i] != 0) {
+            i++;
+        }
+        bytes memory bytesArray = new bytes(i);
+        for (i = 0; i < 20 && _bytes20[i] != 0; i++) {
+            bytesArray[i] = _bytes20[i];
+        }
+        return string(bytesArray);
+    }
 }
