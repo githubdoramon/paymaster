@@ -34,7 +34,7 @@ describe('BuidlBuxx', function () {
     const buidlBuxx = await deployToken(deployer);
 
     expect(await buidlBuxx.name()).to.eq('BUIDL BUXX');
-    expect(await buidlBuxx.symbol()).to.eq('BUXX');
+    expect(await buidlBuxx.symbol()).to.eq('BUIDL');
     expect(await buidlBuxx.decimals()).to.eq(2);
 
     const decimals = await buidlBuxx.decimals()

@@ -13,7 +13,7 @@ contract BuidlBuxx is ERC20, Ownable {
         _;
     }
 
-    constructor() ERC20("BUIDL BUXX", "BUXX") {
+    constructor() ERC20("BUIDL BUXX", "BUIDL") {
         _mint(address(this), 100000 * 10 ** decimals());
     }
 

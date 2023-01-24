@@ -26,6 +26,7 @@ async function deployPaymaster(deployer: Deployer, buildBuxxAddress: string): Pr
 
   const wallet3 = new Wallet(RICH_WALLET_PK_3);
   await (await contract.addAllowedDestination([wallet3.address])).wait()
+  await (await contract.setPaymasterEnabled(true)).wait()
   return contract
 }
 
@@ -199,6 +200,35 @@ describe('BuidlBuxx Paymaster', function () {
         ergsPerPubdata: utils.DEFAULT_ERGS_PER_PUBDATA_LIMIT,
       },
     })).to.be.revertedWith("Failed to validate the transaction. Reason: Validation revert: Paymaster validation error: Destination is not supported by this Paymaster");
+  });
+
+  it("Shouldn't be able to use paymaster if it is disabled", async function () {
+    const provider = new zk.Provider(hre.config.networks.zkSyncTestnet.url)
+
+    const wallet = new Wallet(RICH_WALLET_PK, provider);
+    const wallet2 = new Wallet(RICH_WALLET_PK_2, provider);
+
+    const deployer = new Deployer(hre, wallet);
+
+    const buidlBuxx = await deployToken(deployer);
+    await (await buidlBuxx.claim(wallet.address, 1000)).wait()
+
+    const paymaster = await deployPaymaster(deployer, buidlBuxx.address);
+
+    await (await paymaster.setPaymasterEnabled(false)).wait()
+
+    const paymasterParams = utils.getPaymasterParams(paymaster.address, {
+      type: 'General',
+      innerInput: new Uint8Array(),
+    });
+
+    await expect(buidlBuxx.transfer(wallet2.address, 0, {
+      // paymaster info
+      customData: {
+        paymasterParams,
+        ergsPerPubdata: utils.DEFAULT_ERGS_PER_PUBDATA_LIMIT,
+      },
+    })).to.be.revertedWith("Failed to validate the transaction. Reason: Validation revert: Paymaster validation error: Paymaster is not enabled at this point in time");
   });
 
   it("Can withdraw remaning ETH from paymaster", async function () {

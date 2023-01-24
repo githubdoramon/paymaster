@@ -10,6 +10,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract BuidlBuxxPaymaster is IPaymaster, Ownable {
 
+    bool private _paymasterEnabled = false;
     address public allowedToken;
     mapping (address => bool) public allowedDestinations;
 
@@ -24,6 +25,14 @@ contract BuidlBuxxPaymaster is IPaymaster, Ownable {
 
     constructor(address _erc20) {
         allowedToken = _erc20;
+    }
+
+    function isPaymasterEnabled() external view returns (bool) {
+        return _paymasterEnabled;
+    }
+
+    function setPaymasterEnabled(bool enabled) external onlyOwner {
+        _paymasterEnabled = enabled;
     }
 
     function addAllowedDestination(address[] memory _destinations) external onlyOwner {
@@ -43,6 +52,9 @@ contract BuidlBuxxPaymaster is IPaymaster, Ownable {
         bytes32 _suggestedSignedHash,
         Transaction calldata _transaction
     ) external payable override onlyBootloader returns (bytes memory context) {
+
+        require(_paymasterEnabled, "Paymaster is not enabled at this point in time");
+
         require(
             _transaction.paymasterInput.length >= 4,
             "The standard paymaster input must be at least 4 bytes long"
