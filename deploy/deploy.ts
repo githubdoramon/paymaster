@@ -26,34 +26,36 @@ export default async function (hre: HardhatRuntimeEnvironment) {
   const PaymasterArtifact = await deployer.loadArtifact("BuidlBuxxPaymaster");
   const paymaster = await deployer.deploy(PaymasterArtifact, [buidlBuxx.address]);
 
-  console.log("Paymaster deployed to:", paymaster.address)
-
   await hre.run("verify:verify", {
     address: buidlBuxx.address,
     contract: "contracts/BuidlBuxx.sol:BuidlBuxx",
   });
 
-  // Can't flatten due to circular dependency - need to update the plugin to use the new endpoint for multiple files
-  // await hre.run("verify:verify", {
-  //   address: paymaster.address,
-  //   contract: "contracts/BuidlBuxxPaymaster.sol:BuidlBuxxPaymaster",
-  //   constructorArguments: [buidlBuxx.address]
-  // });
+  await hre.run("verify:verify", {
+    address: paymaster.address,
+    contract: "contracts/BuidlBuxxPaymaster.sol:BuidlBuxxPaymaster",
+    constructorArguments: [buidlBuxx.address]
+  });
+
+  await (await paymaster.setPaymasterEnabled(true)).wait()
+
+  console.log("Paymaster deployed to:", paymaster.address)
 
   // Fund all wallets with BuidlBuxx
   const wallets = require("../testWallets/wallets.json") as { address: string, privateKey: string }[]
 
   const amountToTransfer = 100 * (10 ** (await buidlBuxx.decimals()))
-  const promises: Promise<void>[] = []
-  wallets.forEach(async (wallet) => {
-    const promise = new Promise<void>(async resolve => {
-      await (await buidlBuxx.claim(wallet.address, amountToTransfer)).wait()
-      resolve()
-    })
-    promises.push(promise)
-  });
 
-  await Promise.all(promises)
+  for (const wallet of wallets) {
+    try {
+      console.log(`starting claim for ${wallet.address}`)
+      await (await buidlBuxx.claim(wallet.address, amountToTransfer)).wait()
+      console.log(`claimed for ${wallet.address}`)
+    } catch (e) {
+      console.log(`Error claiming for ${wallet.address}`)
+      console.log(e)
+    }
+  };
 
   // Last wallet will be in the AllowList for claiming
   await buidlBuxx.addToAllowList([wallets[wallets.length - 1].address])
@@ -64,4 +66,7 @@ export default async function (hre: HardhatRuntimeEnvironment) {
   // First wallet will be the owner of the token contract
   await buidlBuxx.transferOwnership(wallets[0].address)
 
+  console.log("Done")
+
+  return
 }
